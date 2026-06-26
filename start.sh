@@ -39,6 +39,35 @@ if [ ! -f /data/.hermes/auth.json ] && [ -n "${HERMES_AUTH_JSON_BOOTSTRAP}" ]; t
   chmod 600 /data/.hermes/auth.json
 fi
 
+# Ensure the llm-wiki path exists.
+mkdir -p "${WIKI_PATH:-/data/.hermes/home/wiki}"
+
+# Optional Obsidian Sync integration.
+# First boot with ENABLE_OBSIDIAN_SYNC=true will configure the local wiki folder
+# against the remote Obsidian Sync vault, then every boot starts continuous sync.
+if [ "${ENABLE_OBSIDIAN_SYNC:-false}" = "true" ]; then
+  export WIKI_PATH="${WIKI_PATH:-/data/.hermes/home/wiki}"
+  export OBSIDIAN_VAULT_PATH="${OBSIDIAN_VAULT_PATH:-$WIKI_PATH}"
+
+  if [ ! -d "$WIKI_PATH/.obsidian" ]; then
+    echo "[obsidian-sync] No local sync config found; running one-time setup..."
+
+    if /app/hermes-obsidian-sync-setup.sh; then
+      echo "[obsidian-sync] One-time setup completed."
+    else
+      echo "[obsidian-sync] Setup failed; continuing without Obsidian continuous sync." >&2
+    fi
+  fi
+
+  if [ -d "$WIKI_PATH/.obsidian" ]; then
+    echo "[obsidian-sync] Starting continuous sync..."
+    /app/hermes-obsidian-sync-continuous.sh &
+  fi
+fi
+
+[ ! -f /data/.hermes/.env ] && touch /data/.hermes/.env
+
+
 # Clear any stale gateway PID file left over from the previous container.
 # `hermes gateway` writes /data/.hermes/gateway.pid on start but does not
 # remove it on SIGTERM. Since /data is a persistent volume, the file

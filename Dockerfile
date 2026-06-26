@@ -27,6 +27,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/*
 
+RUN npm install -g obsidian-headless
+
 # Install hermes-agent (provides the `hermes` CLI) and pre-build its React
 # dashboard so `hermes dashboard` has nothing to build at runtime.
 #
@@ -65,11 +67,19 @@ RUN git clone --depth 1 --branch ${HERMES_REF} https://github.com/NousResearch/h
 COPY requirements.txt /app/requirements.txt
 RUN uv pip install --system --no-cache -r /app/requirements.txt
 
+
 RUN mkdir -p /data/.hermes
 
 COPY server.py /app/server.py
 COPY templates/ /app/templates/
 COPY start.sh /app/start.sh
+COPY scripts/hermes-obsidian-sync-setup.sh /app/hermes-obsidian-sync-setup.sh
+COPY scripts/hermes-obsidian-sync-continuous.sh /app/hermes-obsidian-sync-continuous.sh
+
+RUN chmod +x \
+    /app/hermes-obsidian-sync-setup.sh \
+    /app/hermes-obsidian-sync-continuous.sh
+
 RUN chmod +x /app/start.sh
 
 ENV HOME=/data
