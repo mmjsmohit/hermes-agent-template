@@ -76,6 +76,10 @@ COPY start.sh /app/start.sh
 COPY scripts/hermes-obsidian-sync-setup.sh /app/hermes-obsidian-sync-setup.sh
 COPY scripts/hermes-obsidian-sync-continuous.sh /app/hermes-obsidian-sync-continuous.sh
 
+COPY scripts/hermes-wiki-git-sync-setup.sh /app/hermes-wiki-git-sync-setup.sh
+COPY scripts/hermes-wiki-git-sync-push.sh /app/hermes-wiki-git-sync-push.sh
+RUN chmod +x /app/hermes-wiki-git-sync-setup.sh /app/hermes-wiki-git-sync-push.sh
+
 RUN chmod +x \
     /app/hermes-obsidian-sync-setup.sh \
     /app/hermes-obsidian-sync-continuous.sh
